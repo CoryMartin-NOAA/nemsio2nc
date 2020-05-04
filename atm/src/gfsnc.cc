@@ -167,9 +167,9 @@ namespace nems2nc {
    int dimids2[2], dimids3[3];
    dimids2[0] = ydimid;
    dimids2[1] = xdimid;
-   dimids3[0] = ydimid;
-   dimids3[1] = xdimid;
-   dimids3[2] = zdimid;
+   dimids3[0] = zdimid;
+   dimids3[1] = ydimid;
+   dimids3[2] = xdimid;
    nc_err(nc_redef(ncid));
    // loop through unique records
    for (auto & elem : nemsio.countRecs) {
