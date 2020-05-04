@@ -51,7 +51,7 @@ if [ ! -d $dir_modules ]; then
     echo "modulefiles does not exist in $dir_modules"
     exit 10
 fi
-[ -d $dir_root/exec ] || mkdir -p $dir_root/exec
+[ -d $dir_root/bin ] || mkdir -p $dir_root/bin
 
 rm -rf $dir_root/build
 mkdir -p $dir_root/build
