@@ -40,7 +40,7 @@ namespace nems2nc {
    ierr = MPI_Comm_rank ( MPI_COMM_WORLD, &mype);
    int errval, varid_tmp;
    int dimids1[1], dimids2[2];
-   if (mype == 1) {std::cout << "Opening " << filenamein << " for writing " << std::endl;}
+   if (mype == 0) {std::cout << "Opening " << filenamein << " for writing " << std::endl;}
    filename = filenamein;
    // create netCDF file for writing
    nc_err(nc_create_par(filename.c_str(), NC_CLOBBER|NC_NETCDF4, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid));
@@ -256,16 +256,19 @@ namespace nems2nc {
    recsPE = new int[nprocs+1];
    recsperPE = nemsio.recfields.size() / nprocs;
    irec = 0; recPE = 1;
+   recsPE[0] = -1;
    for (std::size_t i=0; i < nemsio.recfields.size(); ++i) {
       irec+=1;
       if (irec == recsperPE) {
-        recsPE[recPE-1] = i;
+        recsPE[recPE] = i;
         irec = 0;
+        recPE+=1;
       }
    }
    recsPE[nprocs] = nemsio.recfields.size();
+   std::cout << mype << " recsPE[] "<< recsPE[mype] << "-" << recsPE[mype+1] << std::endl;
 
-   for (std::size_t i=recsPE[mype-1]; i < recsPE[mype]; ++i) {
+   for (std::size_t i=recsPE[mype]+1; i < recsPE[mype+1]; ++i) {
      // get data from NEMSIO file
      double nemsdata[nemsio.nx*nemsio.ny];
      std::cout << "Processing: " << nemsio.recname[i] << "," << nemsio.reclevtype[i]

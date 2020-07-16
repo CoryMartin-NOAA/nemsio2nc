@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include "nemsio.h"
 #include "nemsio_interface.h"
+#include <mpi.h>
 
 namespace nems2nc {
 
@@ -12,7 +13,7 @@ namespace nems2nc {
    int mype, ierr, nprocs;
    ierr = MPI_Comm_size ( MPI_COMM_WORLD, &nprocs);
    ierr = MPI_Comm_rank ( MPI_COMM_WORLD, &mype);
-   if (mype == 1) {
+   if (mype == 0) {
    std::cout << "Opening " << filenamein << " for reading " << std::endl;}
    filename = filenamein;
    // convert filename to fname for use in F90
@@ -26,7 +27,7 @@ namespace nems2nc {
    nemsio_open_f90(fname_len, fname);
    // get header info
    nemsio_get_header_f90( idate, fhour, nx, ny, nz, nrec);
-   if (mype == 1) {
+   if (mype == 0) {
      std::cout << "Input NEMSIO file:" << std::endl;
      std::cout << "File info: " << std::endl;
      // print out time M/D/YYYY HH:MM UTC
