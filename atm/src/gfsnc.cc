@@ -92,6 +92,7 @@ namespace nems2nc {
    timestr = get_timestr(nemsio.idate);
    dimids1[0] = tdimid;
    nc_err(nc_def_var( ncid, "time", NC_DOUBLE, 1, dimids1, &varid_tmp));
+   nc_err(nc_var_par_access(ncid, varid_tmp, NC_COLLECTIVE))
    nc_err(nc_put_att_text( ncid, varid_tmp, "cartesian_axis", 1, "T"));
    nc_err(nc_put_att_text( ncid, varid_tmp, "units", 31, timestr.c_str()));
    nc_err(nc_put_att_text( ncid, varid_tmp, "calendar_type", 6, "JULIAN"));
@@ -120,8 +121,6 @@ namespace nems2nc {
 
    // end define mode
    nc_err(nc_enddef(ncid));
-
-   if (mype == 1) {
 
      // write lat/lon/etc.
      double outx[nemsio.nx];
@@ -162,8 +161,8 @@ namespace nems2nc {
      count1[0] = 1;
      double fhout = static_cast<double>(nemsio.fhour);
      nc_err(nc_put_vara_double( ncid, varid_tmp, start1, count1, &fhout));
-   }
-
+     
+   ierr = MPI_Barrier( MPI_COMM_WORLD);
    return 0;
  }
 
