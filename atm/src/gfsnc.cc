@@ -92,7 +92,7 @@ namespace nems2nc {
    timestr = get_timestr(nemsio.idate);
    dimids1[0] = tdimid;
    nc_err(nc_def_var( ncid, "time", NC_DOUBLE, 1, dimids1, &varid_tmp));
-   nc_err(nc_var_par_access(ncid, varid_tmp, NC_COLLECTIVE))
+   nc_err(nc_var_par_access(ncid, varid_tmp, NC_COLLECTIVE));
    nc_err(nc_put_att_text( ncid, varid_tmp, "cartesian_axis", 1, "T"));
    nc_err(nc_put_att_text( ncid, varid_tmp, "units", 31, timestr.c_str()));
    nc_err(nc_put_att_text( ncid, varid_tmp, "calendar_type", 6, "JULIAN"));
@@ -122,46 +122,47 @@ namespace nems2nc {
    // end define mode
    nc_err(nc_enddef(ncid));
 
-     // write lat/lon/etc.
-     double outx[nemsio.nx];
-     double outy[nemsio.ny];
-     int ii = 0;
-     for (int j = 0; j < nemsio.ny; j++) {
-       for (int i = 0; i < nemsio.nx; i++) {
-         outy[j] = nemsio.lat[ii];
-         outx[i] = nemsio.lon[ii];
-         ii++;
-       }
+   // write lat/lon/etc.
+   double outx[nemsio.nx];
+   double outy[nemsio.ny];
+   int ii = 0;
+   for (int j = 0; j < nemsio.ny; j++) {
+     for (int i = 0; i < nemsio.nx; i++) {
+       outy[j] = nemsio.lat[ii];
+       outx[i] = nemsio.lon[ii];
+       ii++;
      }
-     nc_err(nc_inq_varid( ncid, "grid_yt", &varid_tmp));
-     nc_err(nc_put_var_double( ncid, varid_tmp, outy));
-     nc_err(nc_inq_varid( ncid, "grid_xt", &varid_tmp));
-     nc_err(nc_put_var_double( ncid, varid_tmp, outx));
-     nc_err(nc_inq_varid( ncid, "lat", &varid_tmp));
-     nc_err(nc_put_var_double( ncid, varid_tmp, nemsio.lat));
-     nc_err(nc_inq_varid( ncid, "lon", &varid_tmp));
-     nc_err(nc_put_var_double( ncid, varid_tmp, nemsio.lon));
+   }
+   nc_err(nc_inq_varid( ncid, "grid_yt", &varid_tmp));
+   nc_err(nc_put_var_double( ncid, varid_tmp, outy));
+   nc_err(nc_inq_varid( ncid, "grid_xt", &varid_tmp));
+   nc_err(nc_put_var_double( ncid, varid_tmp, outx));
+   nc_err(nc_inq_varid( ncid, "lat", &varid_tmp));
+   nc_err(nc_put_var_double( ncid, varid_tmp, nemsio.lat));
+   nc_err(nc_inq_varid( ncid, "lon", &varid_tmp));
+   nc_err(nc_put_var_double( ncid, varid_tmp, nemsio.lon));
 
-     // need to convert pfull/phalf to float to write out
-     float outpf[nemsio.nz];
-     float outph[nemsio.nz+1];
-     for (int i = 0; i < nemsio.nz; i++) {
-       outpf[i] = static_cast<float>(nemsio.pfull[i]);
-       outph[i] = static_cast<float>(nemsio.phalf[i]);
-     }
-     outph[nemsio.nz] = static_cast<float>(nemsio.phalf[nemsio.nz]);
+   // need to convert pfull/phalf to float to write out
+   float outpf[nemsio.nz];
+   float outph[nemsio.nz+1];
+   for (int i = 0; i < nemsio.nz; i++) {
+     outpf[i] = static_cast<float>(nemsio.pfull[i]);
+     outph[i] = static_cast<float>(nemsio.phalf[i]);
+   }
+   outph[nemsio.nz] = static_cast<float>(nemsio.phalf[nemsio.nz]);
 
-     nc_err(nc_inq_varid( ncid, "pfull", &varid_tmp));
-     nc_err(nc_put_var_float( ncid, varid_tmp, outpf));
-     nc_err(nc_inq_varid( ncid, "phalf", &varid_tmp));
-     nc_err(nc_put_var_float( ncid, varid_tmp, outph));
-     nc_err(nc_inq_varid( ncid, "time", &varid_tmp));
-     size_t start1[1], count1[1];
-     start1[0] = 0;
-     count1[0] = 1;
-     double fhout = static_cast<double>(nemsio.fhour);
-     nc_err(nc_put_vara_double( ncid, varid_tmp, start1, count1, &fhout));
-     
+   nc_err(nc_inq_varid( ncid, "pfull", &varid_tmp));
+   nc_err(nc_put_var_float( ncid, varid_tmp, outpf));
+   nc_err(nc_inq_varid( ncid, "phalf", &varid_tmp));
+   nc_err(nc_put_var_float( ncid, varid_tmp, outph));
+   nc_err(nc_inq_varid( ncid, "time", &varid_tmp));
+   size_t start1[1], count1[1];
+   start1[0] = 0;
+   count1[0] = 1;
+   double fhout = static_cast<double>(nemsio.fhour);
+   nc_err(nc_put_vara_double( ncid, varid_tmp, start1, count1, &fhout));
+
+   nc_err(nc_sync(ncid));
    ierr = MPI_Barrier( MPI_COMM_WORLD);
    return 0;
  }
@@ -172,6 +173,9 @@ namespace nems2nc {
    int errval, varid_tmp;
    bool skip;
    int dimids2[2], dimids3[3];
+   int mype, ierr, nprocs;
+   ierr = MPI_Comm_size ( MPI_COMM_WORLD, &nprocs);
+   ierr = MPI_Comm_rank ( MPI_COMM_WORLD, &mype);
    dimids2[0] = ydimid;
    dimids2[1] = xdimid;
    dimids3[0] = zdimid;
@@ -192,46 +196,50 @@ namespace nems2nc {
      if (pos != std::string::npos) {
        vname_out.erase(pos, midlyr.length()); }
      skip=false;
-     if ( elem.second == 1 ) {
-        std::cout << "Defining 2D output variable " << vname_out << std::endl;
-        vars2d.push_back(vname_out);
-        nc_err(nc_def_var( ncid, vname_out.c_str(), NC_FLOAT, 2, dimids2, &varid_tmp));
-     } else if ( elem.second == nemsio.nz ) {
-        std::cout << "Defining 3D output variable "
-                  << vname_out << ", levs=" << elem.second << std::endl;
-        vars3d.push_back(vname_out);
-        nc_err(nc_def_var( ncid, vname_out.c_str(), NC_FLOAT, 3, dimids3, &varid_tmp));
-     } else {
-        std::cout << "Error! " << vname_out << ", levs=" << elem.second
-        << " != nlevs from NEMSIO header, this var will not be defined." << std::endl;
-        skip=true;
-     }
-     if ( skip == false ) {
-       if ( deflate  > 0 ) {
-          // set this variable to use ZLib compression
-          nc_err(nc_def_var_deflate( ncid, varid_tmp, NC_SHUFFLE, 1, deflate));
+     if ( mype == 1 ) {
+       if ( elem.second == 1) {
+          std::cout << "Defining 2D output variable " << vname_out << std::endl;
+          vars2d.push_back(vname_out);
+          nc_err(nc_def_var( ncid, vname_out.c_str(), NC_FLOAT, 2, dimids2, &varid_tmp));
+          nc_err(nc_var_par_access(ncid, varid_tmp, NC_COLLECTIVE));
+       } else if ( elem.second == nemsio.nz ) {
+          std::cout << "Defining 3D output variable "
+                    << vname_out << ", levs=" << elem.second << std::endl;
+          vars3d.push_back(vname_out);
+          nc_err(nc_def_var( ncid, vname_out.c_str(), NC_FLOAT, 3, dimids3, &varid_tmp));
+          nc_err(nc_var_par_access(ncid, varid_tmp, NC_COLLECTIVE));
+       } else {
+          std::cout << "Error! " << vname_out << ", levs=" << elem.second
+          << " != nlevs from NEMSIO header, this var will not be defined." << std::endl;
+          skip=true;
        }
-       if ( varlongnames.count(vname_out) > 0 ) {
-          // define variable metadata if defined in the header file
-          std::string long_name;
-          long_name = varlongnames.at(vname_out);
-          nc_err(nc_put_att_text( ncid, varid_tmp, "long_name",
-                                  long_name.size(), long_name.c_str()));
+       if ( skip == false ) {
+         if ( deflate  > 0 ) {
+            // set this variable to use ZLib compression
+            nc_err(nc_def_var_deflate( ncid, varid_tmp, NC_SHUFFLE, 1, deflate));
+         }
+         if ( varlongnames.count(vname_out) > 0 ) {
+            // define variable metadata if defined in the header file
+            std::string long_name;
+            long_name = varlongnames.at(vname_out);
+            nc_err(nc_put_att_text( ncid, varid_tmp, "long_name",
+                                    long_name.size(), long_name.c_str()));
+         }
+         if ( varunits.count(vname_out) > 0 ) {
+            // define variable metadata if defined in the header file
+            std::string units;
+            units = varunits.at(vname_out);
+            nc_err(nc_put_att_text( ncid, varid_tmp, "units",
+                                    units.size(), units.c_str()));
+         }
+         // define these constant metadata that are in the FV3 output netCDF files
+         float missval[1];
+         missval[0] = -1e10f;
+         nc_err(nc_put_att_float( ncid, varid_tmp, "missing_value", NC_FLOAT, 1, missval));
+         nc_err(nc_put_att_float( ncid, varid_tmp, "_FillValue", NC_FLOAT, 1, missval));
+         nc_err(nc_put_att_text( ncid, varid_tmp, "cell_methods", 11, "time: point"));
+         nc_err(nc_put_att_text( ncid, varid_tmp, "output_file", 3, "atm"));
        }
-       if ( varunits.count(vname_out) > 0 ) {
-          // define variable metadata if defined in the header file
-          std::string units;
-          units = varunits.at(vname_out);
-          nc_err(nc_put_att_text( ncid, varid_tmp, "units",
-                                  units.size(), units.c_str()));
-       }
-       // define these constant metadata that are in the FV3 output netCDF files
-       float missval[1];
-       missval[0] = -1e10f;
-       nc_err(nc_put_att_float( ncid, varid_tmp, "missing_value", NC_FLOAT, 1, missval));
-       nc_err(nc_put_att_float( ncid, varid_tmp, "_FillValue", NC_FLOAT, 1, missval));
-       nc_err(nc_put_att_text( ncid, varid_tmp, "cell_methods", 11, "time: point"));
-       nc_err(nc_put_att_text( ncid, varid_tmp, "output_file", 3, "atm"));
      }
    }
    nc_err(nc_enddef(ncid));
