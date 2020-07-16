@@ -243,6 +243,7 @@ namespace nems2nc {
      }
    }
    nc_err(nc_enddef(ncid));
+   nc_err(nc_sync(ncid));
  }
 
  int gfsnc::write_vars(nems2nc::nemsio nemsio, int quantize) {
