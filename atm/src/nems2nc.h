@@ -10,8 +10,6 @@ namespace nems2nc {
      std::string netcdf_file;
      int deflate;
      int nbits_out;
-     int nprocs;
-     int mype;
 
      int init(int argc, char** argv);
      int run();

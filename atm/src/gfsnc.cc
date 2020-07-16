@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include "gfsnc.h"
 #include <netcdf.h>
+#include <netcdf_par.h>
 #include "nemsio.h"
 #include "nems2ncvars.h"
 #include "nems2nc.h"
@@ -34,9 +35,12 @@ namespace nems2nc {
    }
 
  int gfsnc::create(std::string filenamein, nems2nc::nemsio nemsio) {
+   int mype, ierr, nprocs;
+   ierr = MPI_Comm_size ( MPI_COMM_WORLD, &nprocs);
+   ierr = MPI_Comm_rank ( MPI_COMM_WORLD, &mype);
    int errval, varid_tmp;
    int dimids1[1], dimids2[2];
-   if (nems2nc::mype == 1) {std::cout << "Opening " << filenamein << " for writing " << std::endl;}
+   if (mype == 1) {std::cout << "Opening " << filenamein << " for writing " << std::endl;}
    filename = filenamein;
    // create netCDF file for writing
    nc_err(nc_create_par(filename.c_str(), NC_CLOBBER|NC_NETCDF4, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid));
@@ -117,7 +121,7 @@ namespace nems2nc {
    // end define mode
    nc_err(nc_enddef(ncid));
 
-   if (nems2nc::mype == 1) {
+   if (mype == 1) {
 
      // write lat/lon/etc.
      double outx[nemsio.nx];

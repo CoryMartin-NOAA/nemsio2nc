@@ -12,6 +12,8 @@ namespace nems2nc {
    // initialize the code
    // get MPI information
    int ierr;
+   int nprocs;
+   int mype;
    ierr = MPI_Comm_size ( MPI_COMM_WORLD, &nprocs);
    ierr = MPI_Comm_rank ( MPI_COMM_WORLD, &mype);
    // get command line arguments
