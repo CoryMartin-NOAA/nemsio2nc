@@ -9,7 +9,11 @@
 namespace nems2nc {
 
  int nemsio::open(std::string filenamein) {
-   std::cout << "Opening " << filenamein << " for reading " << std::endl;
+   int mype, ierr, nprocs;
+   ierr = MPI_Comm_size ( MPI_COMM_WORLD, &nprocs);
+   ierr = MPI_Comm_rank ( MPI_COMM_WORLD, &mype);
+   if (mype == 1) {
+   std::cout << "Opening " << filenamein << " for reading " << std::endl;}
    filename = filenamein;
    // convert filename to fname for use in F90
    char fname[filename.length()];
@@ -22,19 +26,21 @@ namespace nems2nc {
    nemsio_open_f90(fname_len, fname);
    // get header info
    nemsio_get_header_f90( idate, fhour, nx, ny, nz, nrec);
-   std::cout << "Input NEMSIO file:" << std::endl;
-   std::cout << "File info: " << std::endl;
-   // print out time M/D/YYYY HH:MM UTC
-   std::cout << "Initial time: " << idate[1] << "/" << idate[2] << "/" << idate[0] << " ";
-   std::cout << std::setw(2) << std::setfill('0') << idate[3];
-   std::cout << ":";
-   std::cout << std::setw(2) << std::setfill('0') << idate[4];
-   std::cout << " UTC" << std::endl;
-   // print out dimension info
-   std::cout << "Forecast hour = " << fhour << std::endl;
-   std::cout << "nx = " << nx << std::endl;
-   std::cout << "ny = " << ny << std::endl;
-   std::cout << "nz = " << nz << std::endl;
+   if (mype == 1) {
+     std::cout << "Input NEMSIO file:" << std::endl;
+     std::cout << "File info: " << std::endl;
+     // print out time M/D/YYYY HH:MM UTC
+     std::cout << "Initial time: " << idate[1] << "/" << idate[2] << "/" << idate[0] << " ";
+     std::cout << std::setw(2) << std::setfill('0') << idate[3];
+     std::cout << ":";
+     std::cout << std::setw(2) << std::setfill('0') << idate[4];
+     std::cout << " UTC" << std::endl;
+     // print out dimension info
+     std::cout << "Forecast hour = " << fhour << std::endl;
+     std::cout << "nx = " << nx << std::endl;
+     std::cout << "ny = " << ny << std::endl;
+     std::cout << "nz = " << nz << std::endl;
+   }
    // get ak,bk,ntrac
    int npts = nx*ny;
    ak = new double[nz+1];
