@@ -14,9 +14,8 @@ namespace nems2nc {
    int ierr;
    ierr = MPI_Comm_size ( MPI_COMM_WORLD, &nprocs);
    ierr = MPI_Comm_rank ( MPI_COMM_WORLD, &mype);
-   std::cout << "NPES="<<nprocs<<",mype="<<mype<<std:endl;
    // get command line arguments
-   if ( argc < 3 ) {
+   if ( argc < 3 && mype == 1) {
      // need at least input/output filenames
      std::cout << "Wrong usage!" << std::endl;
      std::cout << "example: nemsio2nc nemsiofile ncfile <deflate> <nbits>" << std::endl;
@@ -24,9 +23,11 @@ namespace nems2nc {
    } else {
      nemsio_file = argv[1];
      netcdf_file = argv[2];
-     std::cout << "nemsio2nc - convert GFS NEMSIO file to GFS netCDF file" << std::endl;
-     std::cout << "Input file: " << nemsio_file << std::endl;
-     std::cout << "Output file: " << netcdf_file << std::endl;
+     if (mype == 1) {
+       std::cout << "nemsio2nc - convert GFS NEMSIO file to GFS netCDF file" << std::endl;
+       std::cout << "Input file: " << nemsio_file << std::endl;
+       std::cout << "Output file: " << netcdf_file << std::endl;
+     }
      deflate = 0;
      nbits_out = 0;
      // check if we are using ZLib compression to write out
@@ -37,9 +38,9 @@ namespace nems2nc {
      if ( argc > 4 ) {
        nbits_out = atoi(argv[4]);
      }
-     if ( deflate > 0 ) {
+     if ( deflate > 0 && mype == 1) {
        std::cout << "Deflate level =" << deflate << ". ZLib compression will be used." << std::endl;
-       if ( nbits_out > 0 ) {
+       if ( nbits_out > 0 && mype == 1) {
          std::cout << "nbits =" << nbits_out << ". Lossy compression will also be used." << std::endl;
        }
      }

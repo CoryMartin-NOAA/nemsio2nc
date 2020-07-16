@@ -9,6 +9,7 @@
 #include "nemsio.h"
 #include "nems2ncvars.h"
 #include "nems2nc.h"
+#include <mpi.h>
 
 namespace nems2nc {
 
@@ -35,10 +36,10 @@ namespace nems2nc {
  int gfsnc::create(std::string filenamein, nems2nc::nemsio nemsio) {
    int errval, varid_tmp;
    int dimids1[1], dimids2[2];
-   std::cout << "Opening " << filenamein << " for writing " << std::endl;
+   if (nems2nc::mype == 1) {std::cout << "Opening " << filenamein << " for writing " << std::endl;}
    filename = filenamein;
    // create netCDF file for writing
-   nc_err(nc_create(filename.c_str(), NC_CLOBBER|NC_NETCDF4, &ncid));
+   nc_err(nc_create_par(filename.c_str(), NC_CLOBBER|NC_NETCDF4, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid));
    // define dimensions
    nc_err(nc_def_dim( ncid, "grid_xt", nemsio.nx, &xdimid));
    nc_err(nc_def_dim( ncid, "grid_yt", nemsio.ny, &ydimid));
@@ -116,45 +117,48 @@ namespace nems2nc {
    // end define mode
    nc_err(nc_enddef(ncid));
 
-   // write lat/lon/etc.
-   double outx[nemsio.nx];
-   double outy[nemsio.ny];
-   int ii = 0;
-   for (int j = 0; j < nemsio.ny; j++) {
-     for (int i = 0; i < nemsio.nx; i++) {
-       outy[j] = nemsio.lat[ii];
-       outx[i] = nemsio.lon[ii];
-       ii++;
+   if (nems2nc::mype == 1) {
+
+     // write lat/lon/etc.
+     double outx[nemsio.nx];
+     double outy[nemsio.ny];
+     int ii = 0;
+     for (int j = 0; j < nemsio.ny; j++) {
+       for (int i = 0; i < nemsio.nx; i++) {
+         outy[j] = nemsio.lat[ii];
+         outx[i] = nemsio.lon[ii];
+         ii++;
+       }
      }
-   }
-   nc_err(nc_inq_varid( ncid, "grid_yt", &varid_tmp));
-   nc_err(nc_put_var_double( ncid, varid_tmp, outy));
-   nc_err(nc_inq_varid( ncid, "grid_xt", &varid_tmp));
-   nc_err(nc_put_var_double( ncid, varid_tmp, outx));
-   nc_err(nc_inq_varid( ncid, "lat", &varid_tmp));
-   nc_err(nc_put_var_double( ncid, varid_tmp, nemsio.lat));
-   nc_err(nc_inq_varid( ncid, "lon", &varid_tmp));
-   nc_err(nc_put_var_double( ncid, varid_tmp, nemsio.lon));
+     nc_err(nc_inq_varid( ncid, "grid_yt", &varid_tmp));
+     nc_err(nc_put_var_double( ncid, varid_tmp, outy));
+     nc_err(nc_inq_varid( ncid, "grid_xt", &varid_tmp));
+     nc_err(nc_put_var_double( ncid, varid_tmp, outx));
+     nc_err(nc_inq_varid( ncid, "lat", &varid_tmp));
+     nc_err(nc_put_var_double( ncid, varid_tmp, nemsio.lat));
+     nc_err(nc_inq_varid( ncid, "lon", &varid_tmp));
+     nc_err(nc_put_var_double( ncid, varid_tmp, nemsio.lon));
 
-   // need to convert pfull/phalf to float to write out
-   float outpf[nemsio.nz];
-   float outph[nemsio.nz+1];
-   for (int i = 0; i < nemsio.nz; i++) {
-     outpf[i] = static_cast<float>(nemsio.pfull[i]);
-     outph[i] = static_cast<float>(nemsio.phalf[i]);
-   }
-   outph[nemsio.nz] = static_cast<float>(nemsio.phalf[nemsio.nz]);
+     // need to convert pfull/phalf to float to write out
+     float outpf[nemsio.nz];
+     float outph[nemsio.nz+1];
+     for (int i = 0; i < nemsio.nz; i++) {
+       outpf[i] = static_cast<float>(nemsio.pfull[i]);
+       outph[i] = static_cast<float>(nemsio.phalf[i]);
+     }
+     outph[nemsio.nz] = static_cast<float>(nemsio.phalf[nemsio.nz]);
 
-   nc_err(nc_inq_varid( ncid, "pfull", &varid_tmp));
-   nc_err(nc_put_var_float( ncid, varid_tmp, outpf));
-   nc_err(nc_inq_varid( ncid, "phalf", &varid_tmp));
-   nc_err(nc_put_var_float( ncid, varid_tmp, outph));
-   nc_err(nc_inq_varid( ncid, "time", &varid_tmp));
-   size_t start1[1], count1[1];
-   start1[0] = 0;
-   count1[0] = 1;
-   double fhout = static_cast<double>(nemsio.fhour);
-   nc_err(nc_put_vara_double( ncid, varid_tmp, start1, count1, &fhout));
+     nc_err(nc_inq_varid( ncid, "pfull", &varid_tmp));
+     nc_err(nc_put_var_float( ncid, varid_tmp, outpf));
+     nc_err(nc_inq_varid( ncid, "phalf", &varid_tmp));
+     nc_err(nc_put_var_float( ncid, varid_tmp, outph));
+     nc_err(nc_inq_varid( ncid, "time", &varid_tmp));
+     size_t start1[1], count1[1];
+     start1[0] = 0;
+     count1[0] = 1;
+     double fhout = static_cast<double>(nemsio.fhour);
+     nc_err(nc_put_vara_double( ncid, varid_tmp, start1, count1, &fhout));
+   }
 
    return 0;
  }
