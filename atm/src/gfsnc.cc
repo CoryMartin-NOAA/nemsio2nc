@@ -247,7 +247,25 @@ namespace nems2nc {
  int gfsnc::write_vars(nems2nc::nemsio nemsio, int quantize) {
    int errval, varid_tmp;
    // loop through records
+   // get list of records depending on PE
+   int mype, ierr, nprocs;
+   int irec, recPE;
+   int recsperPE;
+   ierr = MPI_Comm_size ( MPI_COMM_WORLD, &nprocs);
+   ierr = MPI_Comm_rank ( MPI_COMM_WORLD, &mype);
+   recsPE = new int[nprocs+1];
+   recsperPE = nemsio.recfields.size() / nprocs;
+   irec = 0; recPE = 1;
    for (std::size_t i=0; i < nemsio.recfields.size(); ++i) {
+      irec+=1;
+      if (irec == recsperPE) {
+        recsPE[recPE-1] = i;
+        irec = 0;
+      }
+   }
+   recsPE[nprocs] = nemsio.recfields.size();
+
+   for (std::size_t i=recsPE[mype-1]; i < recsPE[mype]; ++i) {
      // get data from NEMSIO file
      double nemsdata[nemsio.nx*nemsio.ny];
      std::cout << "Processing: " << nemsio.recname[i] << "," << nemsio.reclevtype[i]

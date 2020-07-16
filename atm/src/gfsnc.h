@@ -18,6 +18,7 @@ namespace nems2nc {
      int write_vars(nems2nc::nemsio nemsfile, int quantize);
 
      int close();
+     int* recsPE = NULL;
 
  };
 }
