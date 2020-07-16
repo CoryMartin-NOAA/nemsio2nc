@@ -31,6 +31,7 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/../bin)
 set (NETCDF_C "YES")
 find_package (NetCDF REQUIRED)
 include_directories(${NETCDF_INCLUDES})
+find_package( MPI REQUIRED)
 find_package( NEMSIO REQUIRED)
 find_package( BACIO REQUIRED)
 find_package( W3NCO REQUIRED)
@@ -40,7 +41,6 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 include_directories(${PROJECT_SOURCE_DIR}/src)
-include_directories(${NEMSIOINC})
+include_directories(${NEMSIOINC} ${MPI_C_INCLUDE_PATH})
 
 add_subdirectory(src)
-

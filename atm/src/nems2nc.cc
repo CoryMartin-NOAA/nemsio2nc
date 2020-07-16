@@ -4,11 +4,17 @@
 #include <cstdlib>
 #include "gfsnc.h"
 #include "nemsio.h"
+#include <mpi.h>
 
 namespace nems2nc {
 
  int Convert::init(int argc, char** argv) {
    // initialize the code
+   // get MPI information
+   int ierr;
+   ierr = MPI_Comm_size ( MPI_COMM_WORLD, &nprocs);
+   ierr = MPI_Comm_rank ( MPI_COMM_WORLD, &mype);
+   std::cout << "NPES="<<nprocs<<",mype="<<mype<<std:endl;
    // get command line arguments
    if ( argc < 3 ) {
      // need at least input/output filenames
