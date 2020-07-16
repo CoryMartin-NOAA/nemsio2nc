@@ -288,12 +288,12 @@ namespace nems2nc {
      } else {
        // 2D slice of 3D array
        size_t start3[3], count3[3];
-       start3[0] = 0;
-       count3[0] = nemsio.ny;
+       start3[0] = nemsio.nz-nemsio.reclev[i];
+       count3[0] = 1;
        start3[1] = 0;
-       count3[1] = nemsio.nx;
-       start3[2] = nemsio.nz-nemsio.reclev[i];
-       count3[2] = 1;
+       count3[1] = nemsio.ny;
+       start3[2] = 0;
+       count3[2] = nemsio.nx;
        nc_err(nc_put_vara_float( ncid, varid_tmp, start3, count3, outvar));
      }
    }
