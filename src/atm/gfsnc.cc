@@ -12,7 +12,7 @@
 
 namespace nems2nc {
 
- int nc_err( int errval) {
+ void nc_err( int errval) {
     if (errval != 0) {
       std::cout << "netCDF Error! code=" << errval << std::endl;
     }
@@ -159,7 +159,7 @@ namespace nems2nc {
    return 0;
  }
 
- int gfsnc::def_vars(nems2nc::nemsio nemsio, int deflate) {
+ void gfsnc::def_vars(nems2nc::nemsio nemsio, int deflate) {
    // define variables based on what is in the input NEMSIO file
    // requires 'translation' of variable names
    int errval, varid_tmp;
@@ -230,7 +230,7 @@ namespace nems2nc {
    nc_err(nc_enddef(ncid));
  }
 
- int gfsnc::write_vars(nems2nc::nemsio nemsio, int quantize) {
+ void gfsnc::write_vars(nems2nc::nemsio nemsio, int quantize) {
    int errval, varid_tmp;
    // loop through records
    for (std::size_t i=0; i < nemsio.recfields.size(); ++i) {
@@ -285,7 +285,7 @@ namespace nems2nc {
    }
  }
 
- int gfsnc::close() {
+ void gfsnc::close() {
    nc_err(nc_close(ncid));
  }
 }

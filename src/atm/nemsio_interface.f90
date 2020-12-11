@@ -99,7 +99,8 @@ contains
    end do
  end subroutine nemsio_get_recinfo_c
 
- subroutine nemsio_readrec_c(recname_in, reclevtyp_in, strlen1, strlen2, reclev_in, npts, values_out) bind(c,name='nemsio_readrec_f90')
+ subroutine nemsio_readrec_c(recname_in, reclevtyp_in, strlen1, strlen2, reclev_in, npts, values_out) &
+    bind(c,name='nemsio_readrec_f90')
    integer(c_int) :: reclev_in, npts, strlen1, strlen2
    real(c_double), dimension(npts) :: values_out
    character(len=1,kind=c_char), dimension(*) :: recname_in, reclevtyp_in

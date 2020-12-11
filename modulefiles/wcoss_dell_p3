@@ -1,0 +1,33 @@
+#%Module
+
+proc ModulesHelp {} {
+  puts stderr "\tcit - loads modules required for the Dell side of WCOSS"
+}
+
+module-whatis "loads prerequisites on Venus and Mars"
+
+module load ips/18.0.1.163
+module load impi/18.0.1
+module load lsf/10.1
+
+module load cmake/3.16.2
+setenv CMAKE_C_COMPILER mpiicc
+setenv CMAKE_CXX_COMPILER mpiicpc
+setenv CMAKE_Fortran_COMPILER mpiifort
+
+module use /usrx/local/nceplibs/dev/hpc-stack/test/hpc-stack/modulefiles/stack
+
+module load hpc/1.0.0-beta1
+module load hpc-ips/18.0.1.163
+module load hpc-impi/18.0.1
+
+module load jasper/2.0.22
+module load zlib/1.2.11
+module load png/1.6.35
+
+module load hdf5/1.10.6
+module load netcdf/4.7.4
+
+module load bacio/2.4.1
+module load nemsio/2.5.2
+module load w3nco/2.4.1

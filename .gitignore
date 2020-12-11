@@ -1,0 +1,7 @@
+*.nc*
+*.swp
+*.[aox]
+*.mod
+
+build*/
+install*/
