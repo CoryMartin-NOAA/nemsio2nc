@@ -6,16 +6,18 @@ proc ModulesHelp {} {
 
 module-whatis "loads prerequisites for Hera/Intel"
 
+module use -a /contrib/cmake/modulefiles
 module load cmake/3.16.1
 setenv CMAKE_C_COMPILER mpiicc
 setenv CMAKE_CXX_COMPILER mpiicpc
 setenv CMAKE_Fortran_COMPILER mpiifort
 
-module use /scratch2/NCEPDEV/nwprod/hpc-stack/test/modulefiles/stack
+module use /scratch2/NCEPDEV/nwprod/hpc-stack/libs/hpc-stack/modulefiles/stack
+module load hpc/1.1.0
 
-module load hpc/1.0.0-beta1
-module load hpc-intel/18.0.5.274
-module load hpc-impi/2018.0.4
+# Load intel compiler and mpi
+module load hpc-gnu/9.2.0
+module load hpc-mpich/3.3.2 
 
 module load jasper/2.0.22
 module load zlib/1.2.11
